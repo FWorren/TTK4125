@@ -1,1 +1,1 @@
-elevator.o: elevator.c elevator.h orderLogic.h elev.h
+elevator.o: elevator.c elevator.h types.h elev.h

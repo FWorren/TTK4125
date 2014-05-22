@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-struct elevator_init() {
+order_t elevator_init() {
 	int current_floor = elev_get_floor_sensor_signal();
 	if (current_floor != -1){
 		elev_set_floor_indicator(current_floor);
@@ -102,7 +102,8 @@ int elevator_undef(event_t event, order_t head_order){
 	}else{
 		elev_set_speed(-300);
 	}
-	while (true){
+	int curr = -1;
+	while (curr == -1){
 		curr = elev_get_floor_sensor_signal();
 		if (curr != -1){
 			return DOOR;
