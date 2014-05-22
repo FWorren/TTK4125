@@ -12,7 +12,7 @@ int elevator_wait(int **orderlist, event_t event, state_t *state);
 
 int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_order);
 
-int elevator_stop_obstruction(int **orderlist, event_t event, state_t *state);
+int elevator_stop_obstruction(state_t *state);
 
 int elevator_stop(int **orderlist, event_t event, state_t *state);
 

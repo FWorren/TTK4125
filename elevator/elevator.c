@@ -87,8 +87,13 @@ int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_o
 	}
 }
 
-int elevator_stop_obstruction(int **orderlist, event_t event, state_t *state){
-	
+int elevator_stop_obstruction(state_t *state){
+	state = STOP_OBS;
+	while (1){
+		if (!elev_get_obstruction_signal()){
+			return NEW_ORDER;
+		}
+	}
 }
 
 int elevator_stop(int **orderlist, event_t event, state_t *state){
