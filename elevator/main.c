@@ -19,10 +19,10 @@ int main( void ){
 	order_t prev_order, head_order;
 	prev_order = elevator_init();
 	elevator_clear_all_lights();
-	int end = 0;
 	
 	//System is up to date, start elevator
-	while (!end){
+	int system_active = 1;
+	while (system_active){
 		switch(event){
 			case START:
 				event = elevator_wait(orderlist,event,&state);
@@ -49,6 +49,7 @@ int main( void ){
 				event = elevator_undef(event,head_order);
 				break;
 		}
-	}	
+	}
+	orderLogic_free_list(orderlist);	
 	return 0;
 }

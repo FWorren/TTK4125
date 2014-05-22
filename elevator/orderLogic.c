@@ -37,27 +37,25 @@ void orderLogic_free_list(int **orderlist){
 	free(orderlist);
 }
 
-int orderLogic_search_for_orders(int **orderlist, state_t state){
+void orderLogic_search_for_orders(int **orderlist, state_t state){
 	int i;
 	for (i = 0; i < N_FLOORS; i++){
-		if (elev_get_bytton_signal(BUTTON_COMMAND,i) && !orderlist[BUTTON_COMMAND][i]){
+		if (elev_get_button_signal(BUTTON_COMMAND,i) && !orderlist[BUTTON_COMMAND][i]){
 			orderlist[BUTTON_COMMAND][i] = 1;
-			return NEW_ORDER;
-
-		}else if (elev_get_bytton_signal(BUTTON_CALL_UP,i) && !orderlist[BUTTON_CALL_UP][i] && i > 0 && state != STOP){
+			elev_set_button_lamp(BUTTON_COMMAND,i,1);
+		}else if (elev_get_button_signal(BUTTON_CALL_UP,i) && !orderlist[BUTTON_CALL_UP][i] && i > 0 && state != STOPPED){
 			orderlist[BUTTON_CALL_UP][i] = 1;
-			return NEW_ORDER;
-			
-		}else if (elev_get_bytton_signal(BUTTON_CALL_DOWN,i) && !orderlist[BUTTON_CALL_DOWN][i] && i < N_FLOORS-1 && state != STOP){
+			elev_set_button_lamp(BUTTON_CALL_UP,i,1);
+		}else if (elev_get_button_signal(BUTTON_CALL_DOWN,i) && !orderlist[BUTTON_CALL_DOWN][i] && i < N_FLOORS-1 && state != STOPPED){
 			orderlist[BUTTON_CALL_DOWN][i] = 1;
-			return NEW_ORDER;
+			elev_set_button_lamp(BUTTON_CALL_DOWN,i,1);
 		}
 	}
-	return UNDEF;
 }
 
 int orderLogic_get_number_of_orders(int **orderlist){
-	int i,k,numb;
+	int i,k;
+	int numb = 0;
 	for (i = 0; i < N_BUTTONS; i++){
 		for (k = 0; k < N_FLOORS; k++){
 			if (orderlist[i][k]){

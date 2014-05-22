@@ -28,7 +28,10 @@ order_t elevator_init() {
 int elevator_wait(int **orderlist, event_t event, state_t *state){
 	state = WAIT;
 	while (event != NEW_ORDER){
-		event = orderLogic_search_for_orders(orderlist, state);
+		orderLogic_search_for_orders(orderlist, state);
+		if (orderLogic_get_number_of_orders(orderlist) > 0){
+			event = NEW_ORDER;
+		}
 	}
 	return event;
 }
@@ -57,7 +60,7 @@ int elevator_run(int **orderlist, event_t event, state_t *state, order_t head_or
 			elevator_break(head_order.dir);
 			return OBSTR;
 		}
-		event = orderLogic_search_for_orders(orderlist, state);
+		orderLogic_search_for_orders(orderlist, state);
 	}
 }
 
@@ -71,6 +74,7 @@ int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_o
 		elevator_clear_lights_current_floor(head_order.floor);
 		elev_set_door_open_lamp(1);
 		while (interval < sec){
+			orderLogic_search_for_orders(orderlist, state);
 			if (elev_get_obstruction_signal()){interval = 0;}
 			if(elev_get_stop_signal()){return STOP;}
 			finish = clock();
@@ -90,7 +94,7 @@ int elevator_stop_obstruction(int **orderlist, event_t event, state_t *state){
 int elevator_stop(int **orderlist, event_t event, state_t *state){
 	elevator_clear_all_lights();
 	orderLogic_delete_all_orders(orderlist);
-	state = STOPS;
+	state = STOPPED;
 	elev_set_stop_lamp(1);
 	if(elev_get_floor_sensor_signal() != -1){elev_set_door_open_lamp(1);}
 	printf("The elevator has stopped! y/n to continue: ");

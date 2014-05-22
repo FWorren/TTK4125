@@ -10,7 +10,7 @@ void orderLogic_delete_all_orders(int **orderlist);
 
 void orderLogic_free_list(int **orderlist);
 
-int orderLogic_search_for_orders(int **orderlist, state_t state);
+void orderLogic_search_for_orders(int **orderlist, state_t state);
 
 int orderLogic_get_number_of_orders(int **orderlist);
 
