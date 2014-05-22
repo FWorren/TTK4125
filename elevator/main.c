@@ -40,7 +40,7 @@ int main( void ){
 				event = elevator_door(orderlist, event, &state, head_order);
 				break;
 			case OBSTR:
-				event = elevator_stop_obstruction(orderlist, event, &state);
+				event = elevator_stop_obstruction(&state);
 				event = elevator_run(orderlist,event,&state,head_order,&prev_order);
 				break;
 			case STOP:

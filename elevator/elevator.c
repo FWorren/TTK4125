@@ -1,3 +1,4 @@
+#include "orderLogic.h"
 #include "elevator.h"
 #include "elev.h"
 #include <stdio.h>
@@ -26,7 +27,7 @@ order_t elevator_init() {
 }
 
 int elevator_wait(int **orderlist, event_t event, state_t *state){
-	state = WAIT;
+	*state = WAIT;
 	while (event != NEW_ORDER){
 		orderLogic_search_for_orders(orderlist, state);
 		if (orderLogic_get_number_of_orders(orderlist) > 0){
@@ -37,7 +38,7 @@ int elevator_wait(int **orderlist, event_t event, state_t *state){
 }
 
 int elevator_run(int **orderlist, event_t event, state_t *state, order_t head_order, order_t *prev_order){
-	state = RUN;
+	*state = RUN;
 	elev_set_speed(300*head_order.dir);
 	while (event != FLOOR_REACHED){
 		int current_floor = elev_get_floor_sensor_signal();
@@ -62,11 +63,12 @@ int elevator_run(int **orderlist, event_t event, state_t *state, order_t head_or
 		}
 		orderLogic_search_for_orders(orderlist, state);
 	}
+	return FLOOR_REACHED;
 }
 
 int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_order){
 	if (elev_get_floor_sensor_signal() != -1){
-		state = DOOR;
+		*state = DOOR;
 		clock_t start = clock();
 		clock_t finish;
 		float interval = 0.0;
@@ -88,7 +90,7 @@ int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_o
 }
 
 int elevator_stop_obstruction(state_t *state){
-	state = STOP_OBS;
+	*state = STOP_OBS;
 	while (1){
 		if (!elev_get_obstruction_signal()){
 			return NEW_ORDER;
@@ -99,10 +101,11 @@ int elevator_stop_obstruction(state_t *state){
 int elevator_stop(int **orderlist, event_t event, state_t *state){
 	elevator_clear_all_lights();
 	orderLogic_delete_all_orders(orderlist);
-	state = STOPPED;
+	*state = STOPPED;
 	elev_set_stop_lamp(1);
 	if(elev_get_floor_sensor_signal() != -1){elev_set_door_open_lamp(1);}
 	printf("The elevator has stopped! y/n to continue: ");
+	return NEW_ORDER;
 }
 
 int elevator_undef(event_t event, order_t head_order){
@@ -118,6 +121,7 @@ int elevator_undef(event_t event, order_t head_order){
 			return DOOR;
 		}
 	}
+	return NEW_ORDER;
 }
 
 void elevator_clear_lights_current_floor(int current_floor){

@@ -37,7 +37,7 @@ void orderLogic_free_list(int **orderlist){
 	free(orderlist);
 }
 
-void orderLogic_search_for_orders(int **orderlist, state_t state){
+void orderLogic_search_for_orders(int **orderlist, state_t *state){
 	int i;
 	for (i = 0; i < N_FLOORS; i++){
 		if (elev_get_button_signal(BUTTON_COMMAND,i) && !orderlist[BUTTON_COMMAND][i]){
