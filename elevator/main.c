@@ -25,7 +25,7 @@ int main( void ){
 	while (system_active){
 		switch(event){
 			case START:
-				event = elevator_wait(orderlist,event,&state);
+				event = elevator_wait(orderlist,event,&state,prev_order);
 				break;
 			case NEW_ORDER:
 				if (orderLogic_get_number_of_orders(orderlist) > 0){
@@ -33,7 +33,7 @@ int main( void ){
 					head_order = new_order;
 					event = elevator_run(orderlist,event,&state,head_order,&prev_order);
 				}else{
-					event = elevator_wait(orderlist,event,&state);
+					event = elevator_wait(orderlist,event,&state,prev_order);
 				}
 				break;
 			case FLOOR_REACHED:

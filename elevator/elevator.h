@@ -8,7 +8,7 @@ order_t elevator_init();
 
 int elevator_run(int **orderlist, event_t event, state_t *state, order_t head_order, order_t *prev_order);
 
-int elevator_wait(int **orderlist, event_t event, state_t *state);
+int elevator_wait(int **orderlist, event_t event, state_t *state, order_t prev_order);
 
 int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_order);
 
