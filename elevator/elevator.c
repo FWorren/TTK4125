@@ -48,12 +48,8 @@ event_t elevator_run(int **orderlist, state_t *state, order_t head_order, order_
 	int current_floor = elev_get_floor_sensor_signal();
 	if (current_floor != -1){
 		elev_set_floor_indicator(current_floor);
-		if (orderLogic_check_current_floor(orderlist, current_floor, head_order.dir)){
-			elevator_break(head_order.dir);
-			return FLOOR_REACHED;
-		}
 	}
-	if (current_floor == head_order.floor){
+	if (current_floor == head_order.floor || orderLogic_check_current_floor(orderlist, current_floor, head_order.dir)){
 		elevator_break(head_order.dir);
 		return FLOOR_REACHED;
 	}

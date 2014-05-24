@@ -12,6 +12,7 @@ int main( void ){
 	}
 	printf("Press STOP button to stop elevator and exit program.\n");
 
+	// Initialize elevator settings
 	int **orderlist;
 	orderlist = orderLogic_init();
 	state_t state = STATE_UNDEF;
@@ -20,7 +21,7 @@ int main( void ){
 	prev_order = elevator_init();
 	elevator_clear_all_lights();
 	
-	//System is up to date, start elevator
+	// System is up to date, start elevator
 	int system_active = 1;
 	while (system_active){
 		orderLogic_search_for_orders(orderlist, state);
