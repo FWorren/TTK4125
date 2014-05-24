@@ -26,52 +26,49 @@ order_t elevator_init() {
 	return current_pos;
 }
 
-int elevator_wait(int **orderlist, event_t event, state_t *state, order_t prev_order){
-	*state = WAIT;
-	int floor_pushed = -1;
-	while (event != NEW_ORDER){
-		floor_pushed = orderLogic_search_for_orders(orderlist, state);
-		if (floor_pushed == prev_order.floor){
+event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t prev_order){
+	if (*state != WAIT){
+		*state = WAIT;	
+	}
+	if (orderLogic_get_number_of_orders(orderlist) > 0){
+		*head_order = orderLogic_set_head_order(orderlist, prev_order);
+		if (head_order.floor == prev_order.floor){
 			return FLOOR_REACHED;
 		}
-		if (orderLogic_get_number_of_orders(orderlist) > 0){
-			event = NEW_ORDER;
-		}
+		return NEW_ORDER;
 	}
-	return event;
+	return NO_ORDERS;
 }
 
-int elevator_run(int **orderlist, event_t event, state_t *state, order_t head_order, order_t *prev_order){
-	*state = RUN;
-	elev_set_speed(300*head_order.dir);
-	int floor_pushed = -1;
-	while (event != FLOOR_REACHED){
-		int current_floor = elev_get_floor_sensor_signal();
-		if (current_floor != 0){
-			elev_set_floor_indicator(current_floor);
-			if (orderLogic_check_current_floor(orderlist, current_floor, head_order.dir)){
-				elevator_break(head_order.dir);
-				return FLOOR_REACHED;
-			}
-		}
-		if (current_floor == head_order.floor){
+event_t elevator_run(int **orderlist, state_t *state, order_t head_order, order_t *prev_order){
+	if (*state != RUN){
+		*state = RUN;
+		elev_set_speed(300*head_order.dir);	
+	}
+	int current_floor = elev_get_floor_sensor_signal();
+	if (current_floor != -1){
+		elev_set_floor_indicator(current_floor);
+		if (orderLogic_check_current_floor(orderlist, current_floor, head_order.dir)){
 			elevator_break(head_order.dir);
 			return FLOOR_REACHED;
 		}
-		if (elev_get_stop_signal()){
-			elevator_break(head_order.dir);
-			return STOP;
-		}
-		if (elev_get_obstruction_signal()){
-			elevator_break(head_order.dir);
-			return OBSTR;
-		}
-		floor_pushed = orderLogic_search_for_orders(orderlist, state);
 	}
-	return FLOOR_REACHED;
+	if (current_floor == head_order.floor){
+		elevator_break(head_order.dir);
+		return FLOOR_REACHED;
+	}
+	if (elev_get_stop_signal()){
+		elevator_break(head_order.dir);
+		return STOP;
+	}
+	if (elev_get_obstruction_signal()){
+		elevator_break(head_order.dir);
+		return OBSTR;
+	}
+	return NEW_ORDER;
 }
 
-int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_order){
+event_t elevator_door(int **orderlist, event_t event, state_t *state, order_t *head_order){
 	if (elev_get_floor_sensor_signal() != -1){
 		*state = DOOR;
 		clock_t start = clock();
@@ -80,32 +77,35 @@ int elevator_door(int **orderlist, event_t event, state_t *state, order_t head_o
 		float sec = 3.0;
 		elevator_clear_lights_current_floor(head_order.floor);
 		elev_set_door_open_lamp(1);
-		int floor_pushed = -1;
 		while (interval < sec){
-			floor_pushed = orderLogic_search_for_orders(orderlist, state);
+			orderLogic_search_for_orders(orderlist, state);
 			if (elev_get_obstruction_signal()){interval = 0;}
 			if(elev_get_stop_signal()){return STOP;}
 			finish = clock();
 			interval = (float)((finish - start)/(CLOCKS_PER_SEC));
 		}
 		orderLogic_delete_order(orderlist, head_order.floor);
-		elev_set_door_open_lamp(0);
-		return NEW_ORDER;
+		*head_order = orderLogic_set_head_order(orderlist, head_order);
+		if (*head_order.floor != -1){
+			elev_set_door_open_lamp(0);
+			return NEW_ORDER;	
+		}else{
+			return NO_ORDERS;
+		}
 	}else{
 		return UNDEF;
 	}
 }
 
-int elevator_stop_obstruction(state_t *state){
+event_t elevator_stop_obstruction(state_t *state){
 	*state = STOP_OBS;
-	while (1){
-		if (!elev_get_obstruction_signal()){
-			return NEW_ORDER;
-		}
+	if (!elev_get_obstruction_signal()){
+		return NEW_ORDER;
 	}
+	return OBSTR;
 }
 
-int elevator_stop(int **orderlist, event_t event, state_t *state){
+event_t elevator_stop(int **orderlist, event_t event, state_t *state){
 	elevator_clear_all_lights();
 	orderLogic_delete_all_orders(orderlist);
 	*state = STOPPED;
@@ -115,20 +115,8 @@ int elevator_stop(int **orderlist, event_t event, state_t *state){
 	return NEW_ORDER;
 }
 
-int elevator_undef(event_t event, order_t head_order){
-	if (head_order.dir == -1){
-		elev_set_speed(300);
-	}else{
-		elev_set_speed(-300);
-	}
-	int curr = -1;
-	while (curr == -1){
-		curr = elev_get_floor_sensor_signal();
-		if (curr != -1){
-			return DOOR;
-		}
-	}
-	return NEW_ORDER;
+event_t elevator_undef(order_t head_order){
+	
 }
 
 void elevator_clear_lights_current_floor(int current_floor){

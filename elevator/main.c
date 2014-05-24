@@ -15,7 +15,7 @@ int main( void ){
 	int **orderlist;
 	orderlist = orderLogic_init();
 	state_t state = STATE_UNDEF;
-	event_t event = START;
+	event_t event = NO_ORDERS;
 	order_t prev_order, head_order;
 	prev_order = elevator_init();
 	elevator_clear_all_lights();
@@ -23,31 +23,25 @@ int main( void ){
 	//System is up to date, start elevator
 	int system_active = 1;
 	while (system_active){
+		orderLogic_search_for_orders(orderlist, state);
 		switch(event){
-			case START:
-				event = elevator_wait(orderlist,event,&state,prev_order);
-				break;
 			case NEW_ORDER:
-				if (orderLogic_get_number_of_orders(orderlist) > 0){
-					order_t new_order = orderLogic_set_head_order(orderlist, prev_order);
-					head_order = new_order;
-					event = elevator_run(orderlist,event,&state,head_order,&prev_order);
-				}else{
-					event = elevator_wait(orderlist,event,&state,prev_order);
-				}
+				event = elevator_run(orderlist, &state, head_order, &prev_order);
+				break;
+			case NO_ORDERS:
+				event = elevator_wait(orderlist, &state, &head_order, prev_order);
 				break;
 			case FLOOR_REACHED:
-				event = elevator_door(orderlist, event, &state, head_order);
+				event = elevator_door(orderlist, event, &state, &head_order);
 				break;
 			case OBSTR:
 				event = elevator_stop_obstruction(&state);
-				event = elevator_run(orderlist,event,&state,head_order,&prev_order);
 				break;
 			case STOP:
 				event = elevator_stop(orderlist, event, &state);
 				break;
 			case UNDEF:
-				event = elevator_undef(event,head_order);
+				event = elevator_undef(head_order);
 				break;
 		}
 	}
