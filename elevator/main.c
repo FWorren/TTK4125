@@ -15,11 +15,11 @@ int main( void ){
 	// Initialize elevator settings
 	int **orderlist;
 	orderlist = orderLogic_init();
-	state_t state = STATE_UNDEF;
-	event_t event = NO_ORDERS;
 	order_t prev_order, head_order;
 	prev_order = elevator_init();
 	elevator_clear_all_lights();
+	state_t state = WAIT;
+	event_t event = NO_ORDERS;
 	
 	// System is up to date, start elevator
 	int system_active = 1;
@@ -27,7 +27,7 @@ int main( void ){
 		orderLogic_search_for_orders(orderlist, state);
 		switch(event){
 			case NEW_ORDER:
-				event = elevator_run(orderlist, &state, head_order, &prev_order);
+				event = elevator_run(orderlist, &state, &head_order, &prev_order);
 				break;
 			case NO_ORDERS:
 				event = elevator_wait(orderlist, &state, &head_order, prev_order);

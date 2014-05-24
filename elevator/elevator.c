@@ -40,25 +40,30 @@ event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, orde
 	return NO_ORDERS;
 }
 
-event_t elevator_run(int **orderlist, state_t *state, order_t head_order, order_t *prev_order){
+event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order){
 	if (*state != RUN){
 		*state = RUN;
-		elev_set_speed(300*head_order.dir);	
+		elev_set_speed(300*(*head_order).dir);	
 	}
 	int current_floor = elev_get_floor_sensor_signal();
 	if (current_floor != -1){
 		elev_set_floor_indicator(current_floor);
+		if (orderLogic_check_current_floor(orderlist, current_floor, (*head_order).dir)){
+			(*head_order).floor = current_floor;
+			elevator_break((*head_order).dir);
+			return FLOOR_REACHED;
+		}
 	}
-	if (current_floor == head_order.floor || orderLogic_check_current_floor(orderlist, current_floor, head_order.dir)){
-		elevator_break(head_order.dir);
+	if (current_floor == (*head_order).floor){
+		elevator_break((*head_order).dir);
 		return FLOOR_REACHED;
 	}
 	if (elev_get_stop_signal()){
-		elevator_break(head_order.dir);
+		elevator_break((*head_order).dir);
 		return STOP;
 	}
 	if (elev_get_obstruction_signal()){
-		elevator_break(head_order.dir);
+		elevator_break((*head_order).dir);
 		return OBSTR;
 	}
 	return NEW_ORDER;
@@ -73,6 +78,7 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order){
 		float sec = 3.0;
 		elevator_clear_lights_current_floor((*head_order).floor);
 		elev_set_door_open_lamp(1);
+		orderLogic_delete_order(orderlist, (*head_order).floor);
 		while (interval < sec){
 			orderLogic_search_for_orders(orderlist, *state);
 			if (elev_get_obstruction_signal()){interval = 0;}
@@ -80,11 +86,13 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order){
 			finish = clock();
 			interval = (float)((finish - start)/(CLOCKS_PER_SEC));
 		}
-		orderLogic_delete_order(orderlist, (*head_order).floor);
-		*head_order = orderLogic_set_head_order(orderlist, *head_order);
-		if ((*head_order).floor != -1){
-			elev_set_door_open_lamp(0);
-			return NEW_ORDER;	
+		order_t new_order = orderLogic_set_head_order(orderlist, *head_order);
+		elev_set_door_open_lamp(0);
+		if (new_order.floor == (*head_order).floor){
+			return FLOOR_REACHED;	
+		}else if (new_order.floor != -1){
+			*head_order = new_order;
+			return NEW_ORDER;
 		}else{
 			return NO_ORDERS;
 		}
