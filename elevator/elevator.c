@@ -32,7 +32,7 @@ event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, orde
 	}
 	if (orderLogic_get_number_of_orders(orderlist) > 0){
 		*head_order = orderLogic_set_head_order(orderlist, prev_order);
-		if (head_order.floor == prev_order.floor){
+		if ((*head_order).floor == prev_order.floor){
 			return FLOOR_REACHED;
 		}
 		return NEW_ORDER;
@@ -68,25 +68,25 @@ event_t elevator_run(int **orderlist, state_t *state, order_t head_order, order_
 	return NEW_ORDER;
 }
 
-event_t elevator_door(int **orderlist, event_t event, state_t *state, order_t *head_order){
+event_t elevator_door(int **orderlist, state_t *state, order_t *head_order){
 	if (elev_get_floor_sensor_signal() != -1){
 		*state = DOOR;
 		clock_t start = clock();
 		clock_t finish;
 		float interval = 0.0;
 		float sec = 3.0;
-		elevator_clear_lights_current_floor(head_order.floor);
+		elevator_clear_lights_current_floor((*head_order).floor);
 		elev_set_door_open_lamp(1);
 		while (interval < sec){
-			orderLogic_search_for_orders(orderlist, state);
+			orderLogic_search_for_orders(orderlist, *state);
 			if (elev_get_obstruction_signal()){interval = 0;}
 			if(elev_get_stop_signal()){return STOP;}
 			finish = clock();
 			interval = (float)((finish - start)/(CLOCKS_PER_SEC));
 		}
-		orderLogic_delete_order(orderlist, head_order.floor);
-		*head_order = orderLogic_set_head_order(orderlist, head_order);
-		if (*head_order.floor != -1){
+		orderLogic_delete_order(orderlist, (*head_order).floor);
+		*head_order = orderLogic_set_head_order(orderlist, *head_order);
+		if ((*head_order).floor != -1){
 			elev_set_door_open_lamp(0);
 			return NEW_ORDER;	
 		}else{
@@ -105,7 +105,7 @@ event_t elevator_stop_obstruction(state_t *state){
 	return OBSTR;
 }
 
-event_t elevator_stop(int **orderlist, event_t event, state_t *state){
+event_t elevator_stop(int **orderlist, state_t *state){
 	elevator_clear_all_lights();
 	orderLogic_delete_all_orders(orderlist);
 	*state = STOPPED;
@@ -116,7 +116,7 @@ event_t elevator_stop(int **orderlist, event_t event, state_t *state){
 }
 
 event_t elevator_undef(order_t head_order){
-	
+	return UNDEF;
 }
 
 void elevator_clear_lights_current_floor(int current_floor){

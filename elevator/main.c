@@ -32,13 +32,13 @@ int main( void ){
 				event = elevator_wait(orderlist, &state, &head_order, prev_order);
 				break;
 			case FLOOR_REACHED:
-				event = elevator_door(orderlist, event, &state, &head_order);
+				event = elevator_door(orderlist, &state, &head_order);
 				break;
 			case OBSTR:
 				event = elevator_stop_obstruction(&state);
 				break;
 			case STOP:
-				event = elevator_stop(orderlist, event, &state);
+				event = elevator_stop(orderlist, &state);
 				break;
 			case UNDEF:
 				event = elevator_undef(head_order);
