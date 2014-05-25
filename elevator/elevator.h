@@ -20,7 +20,7 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order);
 
 event_t elevator_stop_obstruction(state_t *state);
 
-event_t elevator_stop(int **orderlist, state_t *state);
+event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order);
 
 event_t elevator_undef(order_t head_order);
 

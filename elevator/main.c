@@ -1,4 +1,4 @@
-#include "orderLogic.h"
+#include "orderHandler.h"
 #include "elevator.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@ int main( void ){
 
 	// Initialize elevator settings
 	int **orderlist;
-	orderlist = orderLogic_init();
+	orderlist = orderHandler_init();
 	order_t prev_order, head_order;
 	prev_order = elevator_init();
 	elevator_clear_all_lights();
@@ -24,7 +24,7 @@ int main( void ){
 	// System is up to date, start elevator
 	int system_active = 1;
 	while (system_active){
-		orderLogic_search_for_orders(orderlist, state);
+		orderHandler_search_for_orders(orderlist, state);
 		switch(event){
 			case NEW_ORDER:
 				event = elevator_run(orderlist, &state, &head_order, &prev_order);
@@ -39,13 +39,13 @@ int main( void ){
 				event = elevator_stop_obstruction(&state);
 				break;
 			case STOP:
-				event = elevator_stop(orderlist, &state);
+				event = elevator_stop(orderlist, &state, &head_order);
 				break;
 			case UNDEF:
 				event = elevator_undef(head_order);
 				break;
 		}
 	}
-	orderLogic_free_list(orderlist);	
+	orderHandler_free_list(orderlist);	
 	return 0;
 }

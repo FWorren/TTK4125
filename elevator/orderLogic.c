@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-int **orderLogic_init( void ){
+int **orderHandler_init( void ){
 	int **orderlist;
 	orderlist = (int**)malloc(N_BUTTONS*sizeof(int*));
 	int i,j,k;
@@ -20,7 +20,7 @@ int **orderLogic_init( void ){
 	return orderlist;	
 }
 
-void orderLogic_delete_all_orders(int **orderlist){
+void orderHandler_delete_all_orders(int **orderlist){
 	int i,k;
 	for (i = 0; i < N_BUTTONS; i++){
 		for (k = 0; k < N_FLOORS; k++){
@@ -29,7 +29,7 @@ void orderLogic_delete_all_orders(int **orderlist){
 	}
 }
 
-void orderLogic_free_list(int **orderlist){
+void orderHandler_free_list(int **orderlist){
 	int i;
 	for (i = 0; i < N_BUTTONS; i++){
 		free(orderlist[i]);
@@ -37,7 +37,7 @@ void orderLogic_free_list(int **orderlist){
 	free(orderlist);
 }
 
-void orderLogic_search_for_orders(int **orderlist, state_t state){
+void orderHandler_search_for_orders(int **orderlist, state_t state){
 	int i;
 	for (i = 0; i < N_FLOORS; i++){
 		if (elev_get_button_signal(BUTTON_COMMAND,i) && !orderlist[BUTTON_COMMAND][i]){
@@ -53,7 +53,7 @@ void orderLogic_search_for_orders(int **orderlist, state_t state){
 	}
 }
 
-int orderLogic_get_number_of_orders(int **orderlist){
+int orderHandler_get_number_of_orders(int **orderlist){
 	int i,k;
 	int numb = 0;
 	for (i = 0; i < N_BUTTONS; i++){
@@ -66,32 +66,32 @@ int orderLogic_get_number_of_orders(int **orderlist){
 	return numb;
 }
 
-void orderLogic_delete_order(int **orderlist, int current_floor){
+void orderHandler_delete_order(int **orderlist, int current_floor){
 	orderlist[BUTTON_COMMAND][current_floor] = 0;
 	orderlist[BUTTON_CALL_UP][current_floor] = 0;
 	orderlist[BUTTON_CALL_DOWN][current_floor] = 0;
 }
 
-order_t orderLogic_set_head_order(int **orderlist, order_t prev_order){
+order_t orderHandler_set_head_order(int **orderlist, order_t prev_order){
 	order_t head_order;
 	switch (prev_order.dir){
 		case -1:
-			head_order = orderLogic_state_down(orderlist,prev_order);
+			head_order = orderHandler_state_down(orderlist,prev_order);
 			if (head_order.floor == -1){
-				head_order = orderLogic_state_up(orderlist,prev_order);
+				head_order = orderHandler_state_up(orderlist,prev_order);
 			}
 			break;
 		case 1:
-			head_order = orderLogic_state_up(orderlist, prev_order);
+			head_order = orderHandler_state_up(orderlist, prev_order);
 			if (head_order.floor == -1){
-				head_order = orderLogic_state_down(orderlist,prev_order);
+				head_order = orderHandler_state_down(orderlist,prev_order);
 			}
 			break;
 	}
 	return head_order;
 }
 
-order_t orderLogic_state_up(int **orderlist, order_t prev_order){
+order_t orderHandler_state_up(int **orderlist, order_t prev_order){
 	order_t head_order;
 	int i,k;
 	for (i = 0; i < N_BUTTONS; i++){
@@ -107,7 +107,7 @@ order_t orderLogic_state_up(int **orderlist, order_t prev_order){
 	return head_order;
 }
 
-order_t orderLogic_state_down(int **orderlist, order_t prev_order){
+order_t orderHandler_state_down(int **orderlist, order_t prev_order){
 	order_t head_order;
 	int i,k;
 	for (i = 0; i < N_BUTTONS; i++){
@@ -123,14 +123,13 @@ order_t orderLogic_state_down(int **orderlist, order_t prev_order){
 	return head_order;
 }
 
-int orderLogic_check_current_floor(int **orderlist, int current_floor, int direction){
-	if (direction == 1 && orderlist[BUTTON_CALL_UP][current_floor]){
+int orderHandler_check_current_floor(int **orderlist, int current_floor, int direction){
+	if (direction == 1 && orderlist[BUTTON_CALL_UP][current_floor])
 		return 1;
-	}else if (direction == -1 && orderlist[BUTTON_CALL_DOWN][current_floor]){
+	else if (direction == -1 && orderlist[BUTTON_CALL_DOWN][current_floor])
 		return 1;
-	}else if (orderlist[BUTTON_COMMAND][current_floor]){
+	else if (orderlist[BUTTON_COMMAND][current_floor])
 		return 1;
-	}else {
+	else
 		return 0;
-	} 
 }
