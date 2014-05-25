@@ -5,7 +5,7 @@ CFLAGS = -g -Wall -O2 -I . -MMD
 LDFLAGS = -lm -lpthread -lcomedi -g
 
 # list of sources
-ELEVSRC = elev.c io.c main.c orderLogic.c elevator.c
+ELEVSRC = elev.c io.c main.c orderHandler.c elevator.c
 
 # program executable file name.
 TARGET = heis
