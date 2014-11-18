@@ -20,6 +20,7 @@ int main( void ){
 	elevator_clear_all_lights();
 	state_t state = WAIT;
 	event_t event = NO_ORDERS;
+	clock_t *start;
 	
 	// System is up to date, start elevator
 	int system_active = 1;
@@ -33,7 +34,7 @@ int main( void ){
 				event = elevator_wait(orderlist, &state, &head_order, prev_order);
 				break;
 			case FLOOR_REACHED:
-				event = elevator_door(orderlist, &state, &head_order);
+				event = elevator_door(orderlist, &state, &head_order, &start);
 				break;
 			case OBSTR:
 				event = elevator_stop_obstruction(&state);

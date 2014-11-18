@@ -16,7 +16,7 @@ void orderHandler_free_list(int **orderlist);
 
 void orderHandler_search_for_orders(int **orderlist, state_t state);
 
-void orderHandler_delete_order(int **orderlist, int current_floor);
+void orderHandler_delete_order(int **orderlist, order_t head_order);
 
 order_t orderHandler_set_head_order(int **orderlist, order_t prev_order);
 

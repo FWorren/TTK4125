@@ -66,10 +66,12 @@ int orderHandler_get_number_of_orders(int **orderlist){
 	return numb;
 }
 
-void orderHandler_delete_order(int **orderlist, int current_floor){
-	orderlist[BUTTON_COMMAND][current_floor] = 0;
-	orderlist[BUTTON_CALL_UP][current_floor] = 0;
-	orderlist[BUTTON_CALL_DOWN][current_floor] = 0;
+void orderHandler_delete_order(int **orderlist, order_t head_order){
+	orderlist[BUTTON_COMMAND][head_order.floor] = 0;
+	if (head_order.dir == 1)
+		orderlist[BUTTON_CALL_UP][head_order.floor] = 0;
+	else
+		orderlist[BUTTON_CALL_DOWN][head_order.floor] = 0;
 }
 
 order_t orderHandler_set_head_order(int **orderlist, order_t prev_order){

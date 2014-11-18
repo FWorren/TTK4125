@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "elev.h"
+#include <time.h>
 
 void elevator_clear_lights_current_floor(int current_floor);
 
@@ -16,7 +17,7 @@ event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order
 
 event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t prev_order);
 
-event_t elevator_door(int **orderlist, state_t *state, order_t *head_order);
+event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, clock_t *start);
 
 event_t elevator_stop_obstruction(state_t *state);
 

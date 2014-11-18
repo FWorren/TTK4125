@@ -102,32 +102,23 @@ event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order
 	return NEW_ORDER;
 }
 
-event_t elevator_door(int **orderlist, state_t *state, order_t *head_order){
+event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, clock_t *start){
 	if (elev_get_floor_sensor_signal() != -1){
-		*state = DOOR;
-		clock_t start = clock();
-		clock_t finish;
-		float interval = 0.0;
-		float sec = 3.0;
-		elevator_clear_lights_current_floor((*head_order).floor);
-		elev_set_door_open_lamp(1);
-		orderHandler_delete_order(orderlist, (*head_order).floor);
-		while (interval < sec){
-			orderHandler_search_for_orders(orderlist, *state);
-			if (elev_get_obstruction_signal()){interval = 0;}
-			if(elev_get_stop_signal()){return STOP;}
-			finish = clock();
-			interval = (float)((finish - start)/(CLOCKS_PER_SEC));
+		if (*state != DOOR){
+			*state = DOOR;
+			*start = clock();
+			elevator_clear_lights_current_floor((*head_order).floor);
+			elev_set_door_open_lamp(1);
+			orderHandler_delete_order(orderlist, &head_order);
 		}
-		order_t new_order = orderHandler_set_head_order(orderlist, *head_order);
-		elev_set_door_open_lamp(0);
-		if (new_order.floor == (*head_order).floor){
-			return FLOOR_REACHED;	
-		}else if (new_order.floor != -1){
-			*head_order = new_order;
+		if (elev_get_obstruction_signal()){*start = clock();}
+		if(elev_get_stop_signal()){return STOP;}
+		if ((float)((clock() - *start)/(CLOCKS_PER_SEC)) >= 3.0){
+			order_t new_order = orderHandler_set_head_order(orderlist, *head_order);
+			elev_set_door_open_lamp(0);
 			return NEW_ORDER;
 		}else{
-			return NO_ORDERS;
+			return FLOOR_REACHED;
 		}
 	}else{
 		return UNDEF;
