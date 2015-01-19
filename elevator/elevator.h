@@ -15,7 +15,7 @@ order_t elevator_init();
 
 event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order);
 
-event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t prev_order);
+event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order);
 
 event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, clock_t *start);
 

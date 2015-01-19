@@ -5,40 +5,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-void elevator_clear_lights_current_floor(int current_floor){
-	elev_set_button_lamp(BUTTON_COMMAND, current_floor, 0);
-	if(current_floor < N_FLOORS - 1)
-		elev_set_button_lamp(BUTTON_CALL_UP, current_floor, 0);
-	if(current_floor > 0)
-		elev_set_button_lamp(BUTTON_CALL_DOWN, current_floor, 0);
-}
-
-void elevator_clear_all_lights( void ){
-	elev_set_door_open_lamp(0);
-	elev_set_stop_lamp(0);
-	int i;	
-	for(i = 0; i < N_FLOORS; i++){
-		elev_set_button_lamp(BUTTON_COMMAND, i, 0);
-		if(i > 0)
-			elev_set_button_lamp(BUTTON_CALL_DOWN, i, 0);
-		if(i < N_FLOORS - 1)
-			elev_set_button_lamp(BUTTON_CALL_UP, i, 0);
-	}
-}
-
-void elevator_break(int direction){
-	elev_set_speed(20 * (-direction));
-	clock_t start = clock();
-	clock_t finish;
-	float interval = 0.0;
-	float sec = 0.3;
-	while (interval < sec){
-		finish = clock();
-		interval = (float)((finish - start)/(CLOCKS_PER_SEC));
-	}
-	elev_set_speed(0);
-}
-
 order_t elevator_init() {
 	int current_floor = elev_get_floor_sensor_signal();
 	if (current_floor != -1){
@@ -60,12 +26,12 @@ order_t elevator_init() {
 	return current_pos;
 }
 
-event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t prev_order){
+event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order){
 	if (*state != WAIT)
 		*state = WAIT;	
 	if (orderHandler_get_number_of_orders(orderlist) > 0){
 		*head_order = orderHandler_set_head_order(orderlist, prev_order);
-		if ((*head_order).floor == prev_order.floor){
+		if ((*head_order).floor == (*prev_order).floor){
 			return FLOOR_REACHED;
 		}
 		return NEW_ORDER;
@@ -109,12 +75,12 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, cloc
 			*start = clock();
 			elevator_clear_lights_current_floor((*head_order).floor);
 			elev_set_door_open_lamp(1);
-			orderHandler_delete_order(orderlist, &head_order);
+			orderHandler_delete_order(orderlist, head_order);
 		}
 		if (elev_get_obstruction_signal()){*start = clock();}
 		if(elev_get_stop_signal()){return STOP;}
 		if ((float)((clock() - *start)/(CLOCKS_PER_SEC)) >= 3.0){
-			order_t new_order = orderHandler_set_head_order(orderlist, *head_order);
+			*head_order = orderHandler_set_head_order(orderlist, head_order);
 			elev_set_door_open_lamp(0);
 			return NEW_ORDER;
 		}else{
@@ -144,7 +110,7 @@ event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order){
 		elev_set_door_open_lamp(1);
 	}
 	if (orderHandler_get_number_of_orders(orderlist) > 0){
-		*head_order = orderHandler_set_head_order(orderlist, *head_order);
+		*head_order = orderHandler_set_head_order(orderlist, head_order);
 		elev_set_stop_lamp(0);
 		return NEW_ORDER;
 	}
@@ -153,4 +119,38 @@ event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order){
 
 event_t elevator_undef(order_t head_order){
 	return UNDEF;
+}
+
+void elevator_clear_lights_current_floor(int current_floor){
+	elev_set_button_lamp(BUTTON_COMMAND, current_floor, 0);
+	if(current_floor < N_FLOORS - 1)
+		elev_set_button_lamp(BUTTON_CALL_UP, current_floor, 0);
+	if(current_floor > 0)
+		elev_set_button_lamp(BUTTON_CALL_DOWN, current_floor, 0);
+}
+
+void elevator_clear_all_lights( void ){
+	elev_set_door_open_lamp(0);
+	elev_set_stop_lamp(0);
+	int i;	
+	for(i = 0; i < N_FLOORS; i++){
+		elev_set_button_lamp(BUTTON_COMMAND, i, 0);
+		if(i > 0)
+			elev_set_button_lamp(BUTTON_CALL_DOWN, i, 0);
+		if(i < N_FLOORS - 1)
+			elev_set_button_lamp(BUTTON_CALL_UP, i, 0);
+	}
+}
+
+void elevator_break(int direction){
+	elev_set_speed(20 * (-direction));
+	clock_t start = clock();
+	clock_t finish;
+	float interval = 0.0;
+	float sec = 0.3;
+	while (interval < sec){
+		finish = clock();
+		interval = (float)((finish - start)/(CLOCKS_PER_SEC));
+	}
+	elev_set_speed(0);
 }

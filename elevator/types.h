@@ -1,7 +1,7 @@
 #ifndef types
 #define types
 
-typedef struct order_t{
+typedef struct order_t {
 	int floor;
 	int dir;
 }order_t;
