@@ -80,9 +80,8 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, cloc
 		if (elev_get_obstruction_signal()){*start = clock();}
 		if(elev_get_stop_signal()){return STOP;}
 		if ((float)((clock() - *start)/(CLOCKS_PER_SEC)) >= 3.0){
-			*head_order = orderHandler_set_head_order(orderlist, head_order);
 			elev_set_door_open_lamp(0);
-			return NEW_ORDER;
+			return NO_ORDERS;
 		}else{
 			return FLOOR_REACHED;
 		}
