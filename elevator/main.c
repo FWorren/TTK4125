@@ -1,32 +1,52 @@
-#include "elev.h"
+#include "orderHandler.h"
+#include "elevator.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-
-int main() {
+int main( void ) {
     // Initialize hardware
     if (!elev_init()) {
-        printf("Unable to initialize elevator hardware!\n");
+        printf(__FILE__ ": Unable to initialize elevator hardware\n");
         return 1;
     }
-
     printf("Press STOP button to stop elevator and exit program.\n");
 
-    elev_set_motor_direction(DIRN_UP);
-
-    while (1) {
-        // Change direction when we reach top/bottom floor
-        if (elev_get_floor_sensor_signal() == N_FLOORS - 1) {
-            elev_set_motor_direction(DIRN_DOWN);
-        } else if (elev_get_floor_sensor_signal() == 0) {
-            elev_set_motor_direction(DIRN_UP);
-        }
-
-        // Stop elevator and exit program if the stop button is pressed
-        if (elev_get_stop_signal()) {
-            elev_set_motor_direction(DIRN_STOP);
-            break;
+    // Initialize elevator settings
+    int **orderlist;
+    orderlist = orderHandler_init();
+    order_t prev_order, head_order;
+    prev_order = elevator_init();
+    elevator_clear_all_lights();
+    state_t state = WAIT;
+    event_t event = NO_ORDERS;
+    clock_t start;
+    
+    // System is up to date, start elevator
+    int system_active = 1;
+    while (system_active){
+        orderHandler_search_for_orders(orderlist, state);
+        switch(event){
+            case NEW_ORDER:
+                event = elevator_run(orderlist, &state, &head_order, &prev_order);
+                break;
+            case NO_ORDERS:
+                event = elevator_wait(orderlist, &state, &head_order, &prev_order);
+                break;
+            case FLOOR_REACHED:
+                event = elevator_door(orderlist, &state, &head_order, &start);
+                break;
+            case OBSTR:
+                event = elevator_stop_obstruction(&state);
+                break;
+            case STOP:
+                event = elevator_stop(orderlist, &state, &head_order);
+                break;
+            case FLOOR_MISSED:
+                event = elevator_undef(head_order);
+                break;
         }
     }
-
+    orderHandler_free_list(orderlist);  
     return 0;
 }

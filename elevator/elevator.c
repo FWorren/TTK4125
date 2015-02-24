@@ -14,19 +14,19 @@ order_t elevator_init() {
 		current_pos.dir = -1;
 		return current_pos;
 	}
-	elev_set_speed(-300);
+	elev_set_motor_direction(DIRN_DOWN);
 	while (current_floor == -1){
 		current_floor = elev_get_floor_sensor_signal();
 	}
 	elev_set_floor_indicator(current_floor);
-	elevator_break(-1);
+	elev_set_motor_direction(DIRN_STOP);
 	order_t current_pos;
 	current_pos.floor = current_floor;
 	current_pos.dir = -1;
 	return current_pos;
 }
 
-event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order){
+event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order) {
 	if (*state != WAIT)
 		*state = WAIT;	
 	if (orderHandler_get_number_of_orders(orderlist) > 0){
@@ -39,37 +39,37 @@ event_t elevator_wait(int **orderlist, state_t *state, order_t *head_order, orde
 	return NO_ORDERS;
 }
 
-event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order){
+event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order_t *prev_order) {
 	if (*state != RUN){
 		*state = RUN;
-		elev_set_speed(300*(*head_order).dir);	
+		elev_set_motor_direction((*head_order).dir);	
 	}
 	int current_floor = elev_get_floor_sensor_signal();
 	if (current_floor != -1){
 		elev_set_floor_indicator(current_floor);
 		if (orderHandler_check_current_floor(orderlist, current_floor, (*head_order).dir)){
 			(*head_order).floor = current_floor;
-			elevator_break((*head_order).dir);
+			elev_set_motor_direction((DIRN_STOP);
 			return FLOOR_REACHED;
 		}
 	}
 	if (current_floor == (*head_order).floor){
-		elevator_break((*head_order).dir);
+		elev_set_motor_direction(DIRN_STOP);
 		return FLOOR_REACHED;
 	}
 	if (elev_get_stop_signal()){
-		elevator_break((*head_order).dir);
+		elev_set_motor_direction(DIRN_STOP);
 		return STOP;
 	}
 	if (elev_get_obstruction_signal()){
-		elevator_break((*head_order).dir);
+		elev_set_motor_direction((DIRN_STOP);
 		return OBSTR;
 	}
 	return NEW_ORDER;
 }
 
-event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, clock_t *start){
-	if (elev_get_floor_sensor_signal() != -1){
+event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, clock_t *start) {
+	if (elev_get_floor_sensor_signal() != -1) {
 		if (*state != DOOR){
 			*state = DOOR;
 			*start = clock();
@@ -85,9 +85,8 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, cloc
 		}else{
 			return FLOOR_REACHED;
 		}
-	}else{
-		return UNDEF;
-	}
+	} else
+		return FLOOR_MISSED;
 }
 
 event_t elevator_stop_obstruction(state_t *state){
@@ -98,7 +97,7 @@ event_t elevator_stop_obstruction(state_t *state){
 	return OBSTR;
 }
 
-event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order){
+event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order) {
 	if (*state != STOPPED){
 		printf("The elevator has stopped! Press ctr + c to exit program or request a new order from command");
 		*state = STOPPED;
@@ -116,11 +115,24 @@ event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order){
 	return STOP;
 }
 
-event_t elevator_undef(order_t head_order){
+event_t elevator_undef(order_t head_order) {
+	if (*state != UNDEF) {
+		*state = UNDEF;
+		elev_set_motor_direction((DIRN_DOWN);
+	}
+	int current_floor = elev_get_floor_sensor_signal();
+	if (current_floor != -1) {
+		elev_set_motor_direction((DIRN_STOP);
+		if (current_floor == (*head_order).floor){
+			return FLOOR_REACHED;
+		} else
+			elev_set_motor_direction((DIRN_UP);
+			return UNDEF
+	}
 	return UNDEF;
 }
 
-void elevator_clear_lights_current_floor(int current_floor){
+void elevator_clear_lights_current_floor(int current_floor) {
 	elev_set_button_lamp(BUTTON_COMMAND, current_floor, 0);
 	if(current_floor < N_FLOORS - 1)
 		elev_set_button_lamp(BUTTON_CALL_UP, current_floor, 0);
@@ -128,7 +140,7 @@ void elevator_clear_lights_current_floor(int current_floor){
 		elev_set_button_lamp(BUTTON_CALL_DOWN, current_floor, 0);
 }
 
-void elevator_clear_all_lights( void ){
+void elevator_clear_all_lights( void ) {
 	elev_set_door_open_lamp(0);
 	elev_set_stop_lamp(0);
 	int i;	
@@ -139,17 +151,4 @@ void elevator_clear_all_lights( void ){
 		if(i < N_FLOORS - 1)
 			elev_set_button_lamp(BUTTON_CALL_UP, i, 0);
 	}
-}
-
-void elevator_break(int direction){
-	elev_set_speed(20 * (-direction));
-	clock_t start = clock();
-	clock_t finish;
-	float interval = 0.0;
-	float sec = 0.3;
-	while (interval < sec){
-		finish = clock();
-		interval = (float)((finish - start)/(CLOCKS_PER_SEC));
-	}
-	elev_set_speed(0);
 }

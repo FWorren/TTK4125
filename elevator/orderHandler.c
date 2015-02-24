@@ -8,11 +8,9 @@
 int **orderHandler_init( void ){
 	int **orderlist;
 	orderlist = (int**)malloc(N_BUTTONS*sizeof(int*));
-	int i,j,k;
-	for (i = 0; i < N_FLOORS; i++){
+	int i,k;
+	for (i = 0; i < N_BUTTONS; i++){
 		orderlist[i] = (int*)malloc(N_FLOORS*sizeof(int));
-	}
-	for (j = 0; i < N_BUTTONS; j++){
 		for (k = 0; k < N_FLOORS; k++){
 			orderlist[j][k] = 0;
 		}
