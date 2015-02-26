@@ -43,7 +43,7 @@ int main( void ) {
                 event = elevator_stop(orderlist, &state, &head_order);
                 break;
             case FLOOR_MISSED:
-                event = elevator_undef(&head_order, &state);
+                event = elevator_undef(head_order, &state);
                 break;
         }
     }

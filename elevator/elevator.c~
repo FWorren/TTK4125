@@ -115,7 +115,7 @@ event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order) {
 	return STOP;
 }
 
-event_t elevator_undef(order_t *head_order, state_t *state) {
+event_t elevator_undef(order_t head_order, state_t *state) {
 	if (*state != UNDEF) {
 		*state = UNDEF;
 		elev_set_motor_direction(DIRN_DOWN);
