@@ -41,12 +41,18 @@ void orderHandler_search_for_orders(int **orderlist, state_t state){
 		if (elev_get_button_signal(BUTTON_COMMAND,i) && !orderlist[BUTTON_COMMAND][i]){
 			orderlist[BUTTON_COMMAND][i] = 1;
 			elev_set_button_lamp(BUTTON_COMMAND,i,1);
-		}else if (elev_get_button_signal(BUTTON_CALL_UP,i) && !orderlist[BUTTON_CALL_UP][i] && i > 0 && state != STOPPED){
-			orderlist[BUTTON_CALL_UP][i] = 1;
-			elev_set_button_lamp(BUTTON_CALL_UP,i,1);
-		}else if (elev_get_button_signal(BUTTON_CALL_DOWN,i) && !orderlist[BUTTON_CALL_DOWN][i] && i < N_FLOORS-1 && state != STOPPED){
-			orderlist[BUTTON_CALL_DOWN][i] = 1;
-			elev_set_button_lamp(BUTTON_CALL_DOWN,i,1);
+		}
+		if (i < N_FLOORS-1 && state != STOPPED){
+			if (elev_get_button_signal(BUTTON_CALL_UP,i) && !orderlist[BUTTON_CALL_UP][i]){
+				orderlist[BUTTON_CALL_UP][i] = 1;
+				elev_set_button_lamp(BUTTON_CALL_UP,i,1);
+			}
+		}
+		if (i > 0 && state != STOPPED){
+			if (elev_get_button_signal(BUTTON_CALL_DOWN,i) && !orderlist[BUTTON_CALL_DOWN][i]){
+				orderlist[BUTTON_CALL_DOWN][i] = 1;
+				elev_set_button_lamp(BUTTON_CALL_DOWN,i,1);
+			}
 		}
 	}
 }
@@ -68,7 +74,7 @@ void orderHandler_delete_order(int **orderlist, order_t *head_order){
 	orderlist[BUTTON_COMMAND][(*head_order).floor] = 0;
 	if ((*head_order).dir == 1)
 		orderlist[BUTTON_CALL_UP][(*head_order).floor] = 0;
-	else
+	if ((*head_order).dir == -1)
 		orderlist[BUTTON_CALL_DOWN][(*head_order).floor] = 0;
 }
 
@@ -93,14 +99,16 @@ order_t orderHandler_set_head_order(int **orderlist, order_t *prev_order){
 
 order_t orderHandler_state_up(int **orderlist, order_t *prev_order){
 	order_t head_order;
-	int i,k;
-	for (i = 0; i < N_BUTTONS; i++){
-		for (k = (*prev_order).floor; k < N_FLOORS; k++){
-			if (orderlist[i][k]){
-				head_order.floor = k;
-				head_order.dir = 1;
-				return head_order;
-			}
+	if ((*prev_order).floor == N_FLOORS-1) {
+		head_order.floor = -1;
+		return head_order;
+	}
+	int k;
+	for (k = (*prev_order).floor; k < N_FLOORS; k++){
+		if (orderlist[BUTTON_COMMAND][k] || orderlist[BUTTON_CALL_DOWN][k] || orderlist[BUTTON_CALL_UP][k]){
+			head_order.floor = k;
+			head_order.dir = 1;
+			return head_order;
 		}
 	}
 	head_order.floor = -1;
@@ -109,14 +117,16 @@ order_t orderHandler_state_up(int **orderlist, order_t *prev_order){
 
 order_t orderHandler_state_down(int **orderlist, order_t *prev_order){
 	order_t head_order;
-	int i,k;
-	for (i = 0; i < N_BUTTONS; i++){
-		for (k = (*prev_order).floor; k >= 0; k--){
-			if (orderlist[i][k]){
-				head_order.floor = k;
-				head_order.dir = -1;
-				return head_order;
-			}
+	if ((*prev_order).floor == 0) {
+		head_order.floor = -1;
+		return head_order;
+	}
+	int k;
+	for (k = (*prev_order).floor; k >= 0; k--){
+		if (orderlist[BUTTON_COMMAND][k] || orderlist[BUTTON_CALL_DOWN][k] || orderlist[BUTTON_CALL_UP][k]){
+			head_order.floor = k;
+			head_order.dir = -1;
+			return head_order;
 		}
 	}
 	head_order.floor = -1;
@@ -132,4 +142,9 @@ int orderHandler_check_current_floor(int **orderlist, int current_floor, int dir
 		return 1;
 	else
 		return 0;
+}
+
+void orderHandler_update_prev_order(order_t *prev_order, int dir, int floor){
+	(*prev_order).floor = floor;
+	(*prev_order).dir = dir;
 }

@@ -36,7 +36,7 @@ int main( void ) {
             case FLOOR_REACHED:
                 event = elevator_door(orderlist, &state, &head_order, &start);
                 break;
-            case OBSTR:
+            case STOP_OBS:
                 event = elevator_stop_obstruction(&state);
                 break;
             case STOP:

@@ -24,4 +24,6 @@ order_t orderHandler_state_up(int **orderlist, order_t *prev_order);
 
 order_t orderHandler_state_down(int **orderlist, order_t *prev_order);
 
+void orderHandler_update_prev_order(order_t *prev_order, int dir, int floor);
+
 #endif

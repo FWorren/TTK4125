@@ -15,9 +15,8 @@ order_t elevator_init() {
 		return current_pos;
 	}
 	elev_set_motor_direction(DIRN_DOWN);
-	while (current_floor == -1){
+	while (current_floor == -1)
 		current_floor = elev_get_floor_sensor_signal();
-	}
 	elev_set_floor_indicator(current_floor);
 	elev_set_motor_direction(DIRN_STOP);
 	order_t current_pos;
@@ -47,15 +46,14 @@ event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order
 	int current_floor = elev_get_floor_sensor_signal();
 	if (current_floor != -1){
 		elev_set_floor_indicator(current_floor);
-		if (orderHandler_check_current_floor(orderlist, current_floor, (*head_order).dir)){
-			(*head_order).floor = current_floor;
+		orderHandler_update_prev_order(prev_order,(*head_order).dir, current_floor);
+		if (current_floor == (*head_order).floor){
+			elev_set_motor_direction(DIRN_STOP);
+			return FLOOR_REACHED;
+		} else if (orderHandler_check_current_floor(orderlist, current_floor, (*head_order).dir)){
 			elev_set_motor_direction(DIRN_STOP);
 			return FLOOR_REACHED;
 		}
-	}
-	if (current_floor == (*head_order).floor){
-		elev_set_motor_direction(DIRN_STOP);
-		return FLOOR_REACHED;
 	}
 	if (elev_get_stop_signal()){
 		elev_set_motor_direction(DIRN_STOP);
@@ -63,7 +61,7 @@ event_t elevator_run(int **orderlist, state_t *state, order_t *head_order, order
 	}
 	if (elev_get_obstruction_signal()){
 		elev_set_motor_direction(DIRN_STOP);
-		return OBSTR;
+		return STOP_OBS;
 	}
 	return NEW_ORDER;
 }
@@ -79,10 +77,10 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, cloc
 		}
 		if (elev_get_obstruction_signal()){*start = clock();}
 		if(elev_get_stop_signal()){return STOP;}
-		if ((float)((clock() - *start)/(CLOCKS_PER_SEC)) >= 3.0){
+		if ((((float)(clock() - *start))/(CLOCKS_PER_SEC)) > 3.0){
 			elev_set_door_open_lamp(0);
 			return NO_ORDERS;
-		}else{
+		} else {
 			return FLOOR_REACHED;
 		}
 	} else
@@ -90,11 +88,11 @@ event_t elevator_door(int **orderlist, state_t *state, order_t *head_order, cloc
 }
 
 event_t elevator_stop_obstruction(state_t *state){
-	if (*state != STOP_OBS)
-		*state = STOP_OBS;
+	if (*state != OBSTRUCTION)
+		*state = OBSTRUCTION;
 	if (!elev_get_obstruction_signal())
 		return NEW_ORDER;
-	return OBSTR;
+	return STOP_OBS;
 }
 
 event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order) {
@@ -105,11 +103,12 @@ event_t elevator_stop(int **orderlist, state_t *state, order_t *head_order) {
 		orderHandler_delete_all_orders(orderlist);
 		elev_set_stop_lamp(1);
 		if(elev_get_floor_sensor_signal() != -1)
-		elev_set_door_open_lamp(1);
+			elev_set_door_open_lamp(1);
 	}
 	if (orderHandler_get_number_of_orders(orderlist) > 0){
 		*head_order = orderHandler_set_head_order(orderlist, head_order);
 		elev_set_stop_lamp(0);
+		elev_set_door_open_lamp(0);
 		return NEW_ORDER;
 	}
 	return STOP;
